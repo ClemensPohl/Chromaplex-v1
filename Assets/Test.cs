@@ -28,13 +28,18 @@ public class Test : MonoBehaviour
 
     private void OnStatusChanged(ObserverBehaviour behaviour, TargetStatus status)
     {
-        IsVisible = status.Status == Status.TRACKED ||
-                    status.Status == Status.EXTENDED_TRACKED;
+        IsVisible = status.Status == Status.TRACKED;
 
         if (IsVisible)
         {
             ColorBlock colorblock = button.colors;
             colorblock.normalColor = Color.green;
+            button.colors = colorblock;
+        }
+        else
+        {
+            ColorBlock colorblock = button.colors;
+            colorblock.normalColor = Color.red;
             button.colors = colorblock;
         }
     }
