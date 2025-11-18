@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<QCARConfig>
+    <Tracking>
+        <ImageTarget name="Chroma-Cube.Bottom" size="50.000000 50.000000"/>
+        <ImageTarget name="Chroma-Cube.Right" size="50.000000 50.000000"/>
+        <ImageTarget name="Chroma-Cube.Back" size="50.000000 50.000000"/>
+        <ImageTarget name="Chroma-Cube.Front" size="50.000000 50.000000"/>
+        <ImageTarget name="Chroma-Cube.Top" size="50.000000 50.000000"/>
+        <ImageTarget name="Chroma-Cube.Left" size="50.000000 50.000000"/>
+        <MultiTarget name="Chroma-Cube">
+            <Part name="Chroma-Cube.Left" translation="-25.0 0 0" rotation="AD: 0 1 0 -90"/>
+            <Part name="Chroma-Cube.Right" translation="25.0 0 0" rotation="AD: 0 1 0 90"/>
+            <Part name="Chroma-Cube.Front" translation="0 0 25.0" rotation="AD: 1 0 0 0"/>
+            <Part name="Chroma-Cube.Back" translation="0 0 -25.0" rotation="AD: 0 1 0 180"/>
+            <Part name="Chroma-Cube.Top" translation="0 25.0 0" rotation="AD: 1 0 0 -90"/>
+            <Part name="Chroma-Cube.Bottom" translation="0 -25.0 0" rotation="AD: 1 0 0 90"/>
+        </MultiTarget>
+    </Tracking>
+</QCARConfig>
