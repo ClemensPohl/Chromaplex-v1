@@ -1,18 +1,57 @@
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class ScanManager : MonoBehaviour
 {
-    public FaceTarget[] targets;       
-    public Image[] uiSlots;              
-    public Color lastScannedColor;       
-    public int lastDarknessIndex;        
+    [Header("References")]
+    public Transform ColorBar;
+    public Transform Targets;
 
-    public TextMeshProUGUI debugText;               
-    private bool hasScan = false;
-
+    [Header("Debug UI")]
+    public TextMeshProUGUI debugText;
     public Image debugImage;
+
+    public Color lastScannedColor;
+    public int lastDarknessIndex;
+
+    private Image[] colorbarSlots;
+    private FaceTarget[] targets;
+    private bool[] slotFilled;
+
+    public static Action OnPlayerWin;
+
+    private void Awake()
+    {
+        colorbarSlots = ColorBar.GetComponentsInChildren<Image>();
+        targets = Targets.GetComponentsInChildren<FaceTarget>();
+
+        if (colorbarSlots == null) Debug.Log("Uislots are null");
+        if (targets == null) Debug.Log("Targets are null");
+
+        slotFilled = new bool[colorbarSlots.Length];
+        for (int i = 0; i < slotFilled.Length; i++)
+            slotFilled[i] = false;
+
+        for (int i = 0; i < colorbarSlots.Length; i++)
+        {
+            int slotIndex = i;
+            var button = colorbarSlots[i].GetComponent<Button>();
+            button.onClick.AddListener(() => OnSlotClicked(slotIndex));
+        }
+
+        lastScannedColor = Color.white;
+    }
+
+    private void OnSlotClicked(int index)
+    {
+        colorbarSlots[index].color = lastScannedColor;
+        slotFilled[index] = true;
+
+        debugText.text = "Placed color into slot " + index;
+        CheckOrder();
+    }
 
     public void Scan()
     {
@@ -22,7 +61,6 @@ public class ScanManager : MonoBehaviour
             {
                 lastScannedColor = t.unityColor;
                 lastDarknessIndex = t.darknessIndex;
-                hasScan = true;
 
                 debugText.text = "Scanned: " + t.colorName;
                 debugImage.color = t.unityColor;
@@ -32,33 +70,23 @@ public class ScanManager : MonoBehaviour
 
         debugText.text = "No target detected!";
         debugImage.color = Color.red;
-        hasScan = false;
-    }
-
-    public void SelectSlot(int slotIndex)
-    {
-        if (!hasScan) return;
-
-        uiSlots[slotIndex].color = lastScannedColor;
-
-        // Remove scan so user must scan again
-        hasScan = false;
-        debugText.text = "Placed color into slot " + slotIndex;
-    }
-
-    private void Update()
-    {
-        CheckOrder();
     }
 
     public void CheckOrder()
     {
-        for (int i = 0; i < uiSlots.Length - 1; i++)
+        for (int i = 0; i < slotFilled.Length; i++)
         {
-            if (uiSlots[i].color == Color.clear) return;
+            if (!slotFilled[i])
+            {
+                debugText.text = "Fill all slots first!";
+                return;
+            }
+        }
 
-            int a = GetDarknessByColor(uiSlots[i].color);
-            int b = GetDarknessByColor(uiSlots[i + 1].color);
+        for (int i = 0; i < colorbarSlots.Length - 1; i++)
+        {
+            int a = GetDarknessByColor(colorbarSlots[i].color);
+            int b = GetDarknessByColor(colorbarSlots[i + 1].color);
 
             if (a > b)
             {
@@ -68,6 +96,7 @@ public class ScanManager : MonoBehaviour
         }
 
         debugText.text = "Correct order!";
+        OnPlayerWin?.Invoke();
     }
 
     private int GetDarknessByColor(Color c)
@@ -77,6 +106,21 @@ public class ScanManager : MonoBehaviour
             if (t.unityColor == c)
                 return t.darknessIndex;
         }
-        return -1;
+        return -1; 
+    }
+
+    public void ResetColorbar()
+    {
+        for (int i = 0; i < colorbarSlots.Length; i++)
+        {
+            colorbarSlots[i].color = Color.white; 
+            slotFilled[i] = false;
+        }
+
+        debugText.text = "Puzzle reset.";
+        debugImage.color = Color.white;
+
+        lastScannedColor = Color.white;
+        lastDarknessIndex = -1;
     }
 }
