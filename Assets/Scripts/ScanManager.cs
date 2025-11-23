@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -22,6 +22,30 @@ public class ScanManager : MonoBehaviour
 
     public static Action OnPlayerWin;
 
+    private bool carryingColor = false;
+    private Color carriedColor;
+    private int carriedFromIndex = -1;
+
+    public void OnSlotLongPressed(int index)
+    {
+        if (!slotFilled[index])
+        {
+            debugText.text = "Slot empty, nothing to pick up!";
+            return;
+        }
+
+        carryingColor = true;
+        carriedColor = colorbarSlots[index].color;
+        carriedFromIndex = index;
+
+        // Make original slot empty
+        colorbarSlots[index].color = Color.white;
+        slotFilled[index] = false;
+
+        debugText.text = $"Picked up color from slot {index}";
+    }
+
+
     private void Awake()
     {
         colorbarSlots = ColorBar.GetComponentsInChildren<Image>();
@@ -34,24 +58,73 @@ public class ScanManager : MonoBehaviour
         for (int i = 0; i < slotFilled.Length; i++)
             slotFilled[i] = false;
 
-        for (int i = 0; i < colorbarSlots.Length; i++)
-        {
-            int slotIndex = i;
-            var button = colorbarSlots[i].GetComponent<Button>();
-            button.onClick.AddListener(() => OnSlotClicked(slotIndex));
-        }
+        //for (int i = 0; i < colorbarSlots.Length; i++)
+        //{
+        //    int slotIndex = i;
+        //    var button = colorbarSlots[i].GetComponent<Button>();
+        //    button.onClick.AddListener(() => OnSlotClicked(slotIndex));
+        //}
 
         lastScannedColor = Color.white;
     }
 
     private void OnSlotClicked(int index)
     {
-        colorbarSlots[index].color = lastScannedColor;
-        slotFilled[index] = true;
+        // If carrying a color → drop it here
+        if (carryingColor)
+        {
+            colorbarSlots[index].color = carriedColor;
+            slotFilled[index] = true;
 
-        debugText.text = "Placed color into slot " + index;
-        CheckOrder();
+            carryingColor = false;
+            carriedFromIndex = -1;
+
+            debugText.text = $"Placed color in slot {index}";
+            CheckOrder();
+            return;
+        }
+
+        // Normal place mode (using scanned color)
+        if (lastScannedColor != Color.white)
+        {
+            colorbarSlots[index].color = lastScannedColor;
+            slotFilled[index] = true;
+
+            debugText.text = "Placed scanned color";
+            CheckOrder();
+        }
     }
+
+    public void OnSlotTapped(int index)
+    {
+        // If carrying → drop
+        if (carryingColor)
+        {
+            colorbarSlots[index].color = carriedColor;
+            slotFilled[index] = true;
+
+            carryingColor = false;
+            carriedFromIndex = -1;
+
+            debugText.text = $"Dropped color into slot {index}";
+            CheckOrder();
+            return;
+        }
+
+        // No carrying → place scanned color
+        if (lastScannedColor != Color.white)
+        {
+            colorbarSlots[index].color = lastScannedColor;
+            slotFilled[index] = true;
+            debugText.text = $"Placed scanned color";
+            CheckOrder();
+            return;
+        }
+
+        debugText.text = "Tap does nothing (no scanned color, not carrying any)";
+    }
+
+
 
     public void Scan()
     {
